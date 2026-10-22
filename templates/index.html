@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhantomMirror OS</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="logo">
+            <i data-lucide="terminal" class="accent-icon"></i>
+            <span>PHANTOM_MIRROR <span class="version">v3.0</span></span>
+        </div>
+        <div class="status-group">
+            <div id="device-badge" class="badge offline">
+                <i data-lucide="smartphone"></i> <span id="device-name">No Device</span>
+            </div>
+            <div id="conn-type" class="badge">DISCONNECTED</div>
+            <button onclick="disconnectDevice()" class="header-btn" style="color: var(--error); border-color: rgba(251, 113, 133, 0.3);"><i data-lucide="power"></i> Disconnect</button>
+            <button onclick="toggleFullscreen()" class="icon-only-btn" title="Fullscreen"><i data-lucide="maximize"></i></button>
+        </div>
+    </header>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <nav>
+                <a href="#" class="nav-item active" onclick="switchTab('mirror')"><i data-lucide="monitor-play"></i> Live Mirror</a>
+                <a href="#" class="nav-item" onclick="switchTab('transfer')"><i data-lucide="upload-cloud"></i> File Transfer</a>
+                <a href="#" class="nav-item" onclick="switchTab('alerts')"><i data-lucide="bell"></i> Alerts</a>
+                <a href="#" class="nav-item" onclick="switchTab('gallery')"><i data-lucide="image"></i> Captures</a>
+                <a href="#" class="nav-item" onclick="switchTab('logs')"><i data-lucide="terminal-square"></i> System Logs</a>
+            </nav>
+            
+            <div class="connection-panel">
+                <h3>Connections</h3>
+                <button onclick="detectUSB()" class="action-btn"><i data-lucide="usb"></i> Scan USB</button>
+                <div class="wifi-input">
+                    <input type="text" id="ip-input" placeholder="192.168.x.x">
+                    <button onclick="connectWiFi()"><i data-lucide="wifi"></i></button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="workspace">
+            <div id="view-mirror" class="view active">
+                <div class="mirror-stage">
+                    <div class="mirror-placeholder">
+                        <i data-lucide="cast" class="huge-icon"></i>
+                        <h2>Native Mirror Engine</h2>
+                        <p>Due to hardware acceleration limits, the live video feed opens in a native desktop window.</p>
+                        <div class="audio-toggle-container">
+                            <label class="switch">
+                                <!-- ADDED THE 'checked' ATTRIBUTE HERE -->
+                                <input type="checkbox" id="audio-toggle" checked>
+                                <span class="slider round"></span>
+                            </label>
+                            <span>Stream Audio</span>
+                        </div>
+                        <button onclick="launchMirror()" class="primary-btn"><i data-lucide="play"></i> Launch Mirror</button>
+                    </div>
+                </div>
+                <div class="control-deck">
+                    <button onclick="takeScreenshot()"><i data-lucide="camera"></i> Capture</button>
+                    <button onclick="sendCommand('screen_off')"><i data-lucide="moon"></i> Screen Off</button>
+                    <button onclick="sendCommand('vol_up')"><i data-lucide="volume-2"></i> Vol Up</button>
+                    <button onclick="sendCommand('vol_down')"><i data-lucide="volume-1"></i> Vol Down</button>
+                    <button onclick="sendCommand('reboot')" class="danger-btn"><i data-lucide="refresh-cw"></i> Reboot</button>
+                </div>
+            </div>
+
+            <div id="view-transfer" class="view">
+                <div class="view-header"><h2>File Transfer</h2></div>
+                
+                <div id="drop-zone" class="drop-zone">
+                    <i data-lucide="upload-cloud"></i>
+                    <h3>Drag & Drop Files Here</h3>
+                    <p>Files will be pushed to your phone's Download folder.</p>
+                    <input type="file" id="file-input" style="display: none;">
+                    <button onclick="document.getElementById('file-input').click()" class="primary-btn" style="margin-top: 20px;">Browse Files</button>
+                </div>
+
+                <div id="transfer-wizard" class="transfer-wizard hidden">
+                    <div class="file-card">
+                        <div class="file-preview-box">
+                            <img id="preview-img" class="hidden" alt="Preview">
+                            <i data-lucide="file-text" id="preview-icon" class="huge-icon"></i>
+                        </div>
+                        <div class="file-details">
+                            <h3 id="preview-name">filename.ext</h3>
+                            <p id="preview-size">0 MB</p>
+                        </div>
+                        <div class="wizard-actions">
+                            <button onclick="cancelUpload()" class="header-btn"><i data-lucide="x"></i> Cancel</button>
+                            <button onclick="confirmUpload()" class="primary-btn" id="upload-btn"><i data-lucide="send"></i> Transfer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-alerts" class="view">
+                <div class="view-header">
+                    <h2>Notifications</h2>
+                    <button onclick="loadNotifications()" class="header-btn"><i data-lucide="refresh-cw"></i> Refresh</button>
+                </div>
+                <div id="alerts-container" class="alerts-grid">
+                    <p class="empty-state">No notifications found.</p>
+                </div>
+            </div>
+
+            <div id="view-gallery" class="view">
+                <div class="view-header">
+                    <h2>Screenshot Gallery</h2>
+                    <button onclick="loadGallery()" class="header-btn"><i data-lucide="refresh-cw"></i> Refresh</button>
+                </div>
+                <div id="gallery-grid" class="gallery-grid">
+                    <p class="empty-state">No captures found.</p>
+                </div>
+            </div>
+
+            <div id="view-logs" class="view">
+                <div class="view-header">
+                    <h2>System Logs</h2>
+                    <button onclick="copyLogs()" class="header-btn"><i data-lucide="copy"></i> Copy Logs</button>
+                </div>
+                <div id="log-container" class="log-container"></div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+    <script src="/static/script.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

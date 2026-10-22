@@ -1,0 +1,14 @@
+﻿# Python Virtual Environment
+venv/
+__pycache__/
+*.pyc
+
+# Temporary Files & Folders
+temp_uploads/
+captures/
+static/preview.png
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.vscode/
